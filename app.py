@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import os
 from langchain_ollama import OllamaLLM
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
@@ -174,22 +175,57 @@ st.download_button(
 # -----------------------
 st.subheader("Ask Your AI Assistant")
 
-llm = OllamaLLM(model="mistral")
+# -----------------------
+# HYBRID LLM SETUP
+# -----------------------
+
+USE_CLOUD_LLM = os.getenv("OPENAI_API_KEY") is not None
+
+if USE_CLOUD_LLM:
+    from langchain_openai import ChatOpenAI
+
+    llm = ChatOpenAI(
+        api_key=os.getenv("OPENAI_API_KEY"),
+        model="gpt-4o-mini"
+    )
+else:
+    from langchain_ollama import OllamaLLM
+
+    llm = OllamaLLM(model="mistral")
+
+
+# -----------------------
+# AI ASSISTANT (SAFE)
+# -----------------------
+st.subheader("Ask Your AI Assistant")
 
 user_q = st.text_input("Ask a business question:")
 
 if st.button("Ask AI"):
-    response = llm.invoke(f"""
-    You are a grocery business analyst.
 
-    Data summary:
-    Revenue = {total_revenue}
-    Profit = {profit}
+    if not user_q:
+        st.warning("Please enter a question.")
+    else:
+        try:
+            response = llm.invoke(f"""
+            You are a grocery business analyst.
 
-    Question:
-    {user_q}
+            Data summary:
+            Revenue = {total_revenue}
+            Profit = {profit}
 
-    Give insights + recommendations.
-    """)
+            Question:
+            {user_q}
 
-    st.write(response)
+            Provide:
+            - Clear answer
+            - Business insight
+            - 2 actionable recommendations
+            """)
+
+            st.success("AI Response")
+            st.write(response)
+
+        except Exception as e:
+            st.error("AI is not available in this environment.")
+            st.info("Run locally to enable full AI (Ollama).")
