@@ -142,11 +142,11 @@ st.dataframe(top_products)
 # -----------------------
 # DOWNLOAD CSV
 # -----------------------
-st.download_button(
-    "⬇️ Download Sales Data (CSV)",
-    filtered.to_csv(index=False),
-    file_name="sales_report.csv"
-)
+# st.download_button(
+#    "⬇️ Download Sales",
+#    filtered.to_csv(index=False),
+#    file_name="sales.csv"
+# )
 
 # -----------------------
 # DOWNLOAD PDF
@@ -165,7 +165,7 @@ def create_pdf():
         return f.read()
 
 st.download_button(
-    "⬇️ Download PDF Report",
+    "⬇️ Download Report",
     create_pdf(),
     file_name="report.pdf"
 )
