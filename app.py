@@ -88,7 +88,7 @@ col3.metric("📈 Profit", f"${profit:,.0f}")
 # -----------------------
 # INTERACTIVE CHART
 # -----------------------
- monthly = (
+monthly = (
     filtered.groupby(filtered["Posting Date"].dt.to_period("M"))["Revenue"]
     .sum()
     .reset_index()
