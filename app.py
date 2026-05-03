@@ -128,16 +128,16 @@ else:
 # -----------------------
 # TOP PRODUCTS
 # -----------------------
-st.subheader("🏆 Top Products")
+# st.subheader("🏆 Top Products")
 
-top_products = (
-    filtered.groupby("Product")["Quantity"]
-    .sum()
-    .sort_values(ascending=False)
-    .head(10)
-)
+# top_products = (
+#    filtered.groupby("Product")["Quantity"]
+#    .sum()
+#    .sort_values(ascending=False)
+#    .head(10)
+# )
 
-st.dataframe(top_products)
+# st.dataframe(top_products)
 
 # -----------------------
 # DOWNLOAD CSV
