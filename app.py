@@ -11,7 +11,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 # -----------------------
 st.set_page_config(page_title="Grocery AI Dashboard", layout="wide")
 
-st.title("🛒 Grocery AI Intelligence Dashboard")
+st.title("🛒 Grocery AI Assistant")
 
 # -----------------------
 # LOAD DATA
