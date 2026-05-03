@@ -1,0 +1,6 @@
+streamlit
+pandas
+plotly
+reportlab
+langchain
+langchain-ollama
