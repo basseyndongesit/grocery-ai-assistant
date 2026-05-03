@@ -173,7 +173,7 @@ st.download_button(
 # -----------------------
 # AI ASSISTANT
 # -----------------------
-st.subheader("Ask Your AI Assistant")
+# st.subheader("Ask Your AI Assistant")
 
 # -----------------------
 # HYBRID LLM SETUP
