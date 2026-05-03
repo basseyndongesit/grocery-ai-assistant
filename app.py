@@ -88,15 +88,15 @@ col3.metric("📈 Profit", f"${profit:,.0f}")
 # -----------------------
 # INTERACTIVE CHART
 # -----------------------
-monthly = (
-    filtered.groupby(filtered["Posting Date"].dt.to_period("M"))["Revenue"]
-    .sum()
-    .reset_index()
-)
-monthly["Posting Date"] = monthly["Posting Date"].astype(str)
+# monthly = (
+#    filtered.groupby(filtered["Posting Date"].dt.to_period("M"))["Revenue"]
+#    .sum()
+#    .reset_index()
+#)
+#monthly["Posting Date"] = monthly["Posting Date"].astype(str)
 
-fig = px.line(monthly, x="Posting Date", y="Revenue", title="Monthly Revenue Trend")
-st.plotly_chart(fig, use_container_width=True)
+#fig = px.line(monthly, x="Posting Date", y="Revenue", title="Monthly Revenue Trend")
+#st.plotly_chart(fig, use_container_width=True)
 
 # -----------------------
 # AUTO INSIGHTS
