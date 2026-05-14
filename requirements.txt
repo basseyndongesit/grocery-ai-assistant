@@ -1,0 +1,10 @@
+streamlit
+pandas
+matplotlib
+psutil
+langchain
+langchain-ollama
+ollama
+python-dotenv
+numpy
+openpyxl

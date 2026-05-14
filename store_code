@@ -1,0 +1,246 @@
+import pandas as pd
+
+# Load datasets
+sales = pd.read_csv(r"C:\Users\basse\OneDrive\Documents\ANALYTICS spring 2025\SPS Project - Local AI Agent\Grocery AI Project\Sales.csv")
+inventory = pd.read_csv(r"C:\Users\basse\OneDrive\Documents\ANALYTICS spring 2025\SPS Project - Local AI Agent\Grocery AI Project\Inventory.csv")
+expenses = pd.read_csv(r"C:\Users\basse\OneDrive\Documents\ANALYTICS spring 2025\SPS Project - Local AI Agent\Grocery AI Project\Expenses.csv")
+
+# Preview data
+print(sales.head())
+print(inventory.head())
+print(expenses.head())
+
+print(sales.columns)
+
+sales = sales.rename(columns={
+    "Item Description": "Product",
+    "Units Sold": "Quantity"
+})
+
+print(sales.columns)
+
+def get_top_products():
+    sales["Quantity"] = sales["Quantity"].astype(int)
+
+    top_products = (
+        sales.groupby("Product")["Quantity"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(5)
+    )
+    return top_products
+
+from langchain_ollama import OllamaLLM
+# Connect to AI
+llm = OllamaLLM(model="mistral")
+
+# Get data
+top_products = get_top_products()
+
+# Prompt
+prompt = f"""
+You are an AI decision support assistant for a grocery store owner.
+
+Use ONLY the data provided below. Do NOT give generic advice.
+
+Top-selling products:
+{top_products}
+
+Your tasks:
+1. Identify the top-performing product
+2. Compare performance between products
+3. Highlight any significant differences
+4. Give 3 SPECIFIC, data-driven recommendations
+
+Be concise and analytical.
+"""
+
+# AI response
+response = llm.invoke(prompt)
+
+print(response)
+
+try:
+    from langchain_community.llms import Ollama
+except ImportError:
+    raise ImportError("Could not import Ollama from langchain_community.llms. Install langchain-community and ollama packages.")
+
+llm = Ollama(model="mistral")
+
+with open("Knowledge.txt") as f:
+    knowledge = f.read()
+
+query = "banana"
+
+if query.lower() in knowledge.lower():
+    context = knowledge
+else:
+    context = "No relevant info found"
+
+prompt = f"""
+Context:
+{context}
+
+Question:
+How should I manage bananas?
+"""
+
+response = llm.invoke(prompt)
+print(response)
+
+
+
+
+import os
+
+print("RUNNING FILE:", os.path.abspath(__file__))
+
+with open(__file__, "r") as f:
+    lines = f.readlines()
+
+print("START OF SCRIPT")
+
+import pandas as pd
+from langchain_ollama import OllamaLLM
+
+
+# LOAD DATA
+
+sales = pd.read_csv(r"C:\Users\basse\OneDrive\Documents\ANALYTICS spring 2025\SPS Project - Local AI Agent\Grocery AI Project\Sales.csv")
+inventory = pd.read_csv(r"C:\Users\basse\OneDrive\Documents\ANALYTICS spring 2025\SPS Project - Local AI Agent\Grocery AI Project\Inventory.csv")
+expenses = pd.read_csv(r"C:\Users\basse\OneDrive\Documents\ANALYTICS spring 2025\SPS Project - Local AI Agent\Grocery AI Project\Expenses.csv")
+
+
+# CLEAN DATA
+
+sales = sales.rename(columns={
+    "Item Description": "Product",
+    "Units Sold": "Quantity"
+})
+
+# --- FIX QUANTITY (safe conversion) ---
+sales["Quantity"] = pd.to_numeric(sales["Quantity"], errors="coerce")
+
+# Clean money columns
+for col in ["Sales Amount", "Cost Amount", "Profit"]:
+    sales[col] = pd.to_numeric(
+        sales[col].astype(str).str.replace(r"[^\d.-]", "", regex=True),
+        errors="coerce"
+    )
+
+# Rename
+sales = sales.rename(columns={
+    "Sales Amount": "Revenue",
+    "Cost Amount": "Cost"
+})
+
+
+# DEFINE TOOLS
+
+def get_top_products():
+    return (
+        sales.groupby("Product")["Quantity"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(5)
+    )
+
+def total_revenue():
+    return sales["Revenue"].sum()
+
+def total_profit():
+    return sales["Profit"].sum()
+
+def total_expenses():
+    return expenses["Amount"].sum()
+
+def total_cost():
+    return sales["Cost"].sum()
+
+# LOAD AI MODEL
+
+llm = OllamaLLM(model="mistral")
+
+
+# SIMPLE RAG (KNOWLEDGE FILE)
+
+with open("Knowledge.txt") as f:
+    knowledge = f.read()
+
+def retrieve_context(question):
+    if any(word in question.lower() for word in ["banana", "inventory", "stock", "perishable"]):
+        return knowledge
+    return "No additional business context available."
+
+
+# TOOL REGISTRY (AGENT)
+
+tools = {
+    "top_products": get_top_products,
+    "total_revenue": total_revenue,
+    "total_profit": total_profit,
+    "total_expenses": total_expenses,
+    "total_cost": total_cost
+}
+
+# TOOL SELECTION LOGIC
+
+def choose_tool(question):
+    question = question.lower()
+
+    if "top" in question or "best selling" in question:
+        return "top_products"
+    elif "revenue" in question or "sales" in question:
+        return "total_revenue"
+    elif "profit" in question:
+        return "total_profit"
+    elif "expense" in question or "operating cost" in question:
+        return "total_expenses"
+    elif "cost of goods" in question or "cogs" in question or "product cost" in question:
+        return "total_cost"
+    else:
+        return None
+
+
+# MAIN SYSTEM (AGENT FLOW)
+print("REACHED INPUT")
+print("PROGRAM STARTED")
+
+try:
+    user_question = input("Ask a question: ")
+except Exception as e:
+    print("INPUT ERROR:", e)
+    user_question = "What is total revenue?"
+
+print("You asked:", user_question)
+
+tool_name = choose_tool(user_question)
+
+if tool_name:
+    result = tools[tool_name]()
+    context = retrieve_context(user_question)
+
+    prompt = f"""
+    You are a grocery store AI decision assistant.
+
+    User Question:
+    {user_question}
+
+    Data Result:
+    {result}
+
+    Additional Context:
+    {context}
+
+    Tasks:
+    - Explain the result clearly
+    - Provide business insights
+    - Give 2–3 actionable recommendations
+    """
+
+    response = llm.invoke(prompt)
+    print("\nAI RESPONSE:\n")
+    print(response)
+
+else:
+    print("I don't understand the question yet.")
